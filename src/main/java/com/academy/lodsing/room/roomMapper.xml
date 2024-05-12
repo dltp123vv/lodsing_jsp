@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.academy.lodsing.room.RoomMapper">
+
+	<!-- 호텔 상세보기 룸 출력 -->
+	<select id="getRooms" resultType="Room" parameterType="String">
+		select * from room where ownid=#{ownid}
+	</select>
+	
+	<!-- 객실 상세보기 reservationMapper에서 -->
+	<select id="getRoom" resultType="Room" parameterType="int">
+		SELECT 
+			* 
+		FROM ROOM 
+		WHERE ROOMNUM = #{roomnum}
+	</select>
+	
+	<!-- 예약 내역 리스트 -->
+	<select id="getBookins" resultType="Booking" parameterType="Map">
+		SELECT 
+			* 
+		FROM (
+			SELECT RANK() over(
+			ORDER BY BOOKCHECKOUT DESC,BOOOKSTATUS DESC) NO , A.* 
+			FROM (
+				SELECT
+					M.MEMNAME, 
+					M.MEMTEL, 
+					M.MEMID,
+					B.ROOMNAME,
+					B.BOOKCHECKIN,
+					B.BOOKCHECKOUT, 
+					R.ROOMCOUNT, 
+					B.BOOKSTATUS
+				FROM MEMBER M, ROOM R, BOOKING B
+				WHERE R.OWNID = #{ownid} 
+					AND R.ROOMNAME = B.ROOMNAME
+					AND M.MEMID = B.MEMID
+				ORDER BY  BOOKCHECKOUT ASC, BOOKSTATUS DESC
+				) A ) 
+			WHERE NO BETWEEN #{start} AND #{end}
+	</select>
+	
+	<!-- 객실 등록 -->
+	<insert id="insertRoom" parameterType="Room">
+		INSERT INTO ROOM
+		VALUES (
+			seq_room_roomnum.nextVal,
+			#{room.ownid},
+			#{room.roomcount},
+			#{room.roomname},
+			#{room.roomprice},
+			#{room.roomcheckin},
+			#{room.roomcheckout},
+			#{room.roominfo},
+			#{room.filename}
+		)
+	</insert>
+	
+	<!-- 체크인 안한 객실 -->
+	<select id="getNotChekIn" resultType="Booking" parameterType="String">
+		SELECT 
+			* 
+		FROM (
+			SELECT 
+				B.BOOKNUM, 
+				M.MEMNAME, 
+				M.MEMTEL,
+				B.ROOMNAME, 
+				B.BOOKCHECKIN,
+				B.BOOKCHECKOUT,
+				R.ROOMCOUNT, 
+				B.BOOKSTATUS
+			FROM MEMBER M, 
+				ROOM R, 
+				BOOKING B
+			WHERE R.OWNID = #{ownid} 
+				AND R.ROOMNAME = B.ROOMNAME 
+				AND M.MEMID = B.MEMID 
+				AND B.BOOKSTATUS = 1
+			)
+		WHERE BOOKCHECKIN = #{bookcheckin} 
+			OR BOOKCHECKIN &lt; #{bookcheckin}
+	</select>
+
+	<!-- 체크인 한 객실 내역 -->
+	<select id="getCheckIn" resultType="Booking" parameterType="String">
+		SELECT 
+			* 
+		FROM (
+			SELECT 
+				B.BOOKNUM, 
+				M.MEMNAME, 
+				M.MEMTEL,
+				B.ROOMNAME, 
+				B.BOOKCHECKIN, 
+				B.BOOKCHECKOUT,
+				R.ROOMCOUNT, 
+				B.BOOKSTATUS
+			FROM MEMBER M, 
+				ROOM R, 
+				BOOKING B
+			WHERE R.OWNID = #{ownid} 
+				AND R.ROOMNAME = B.ROOMNAME 
+				AND M.MEMID = B.MEMID 
+				AND B.BOOKSTATUS = 3
+			)
+		WHERE BOOKCHECKIN = #{bookcheckin}
+	</select>
+	
+	<!-- 오늘 체크인 하기 -->
+	<update id="updateTodayCheckIn" parameterType="String">
+		UPDATE BOOKING 
+		SET BOOKSTATUS = 3 
+		WHERE BUNAME = #{buname}
+			AND BOOKNUM = #{booknum} 
+			AND BOOKCHECKIN = #{bookcheckin}
+	</update>
+	
+	<!-- 체크아웃 안한 룸 -->
+	<select id="getNotChekOut" resultType="Booking" parameterType="String">
+		SELECT 
+			* 
+		FROM (
+			SELECT 
+				B.BOOKNUM, 
+				M.MEMNAME, 
+				M.MEMTEL,
+				B.ROOMNAME, 
+				B.BOOKCHECKIN, 
+				B.BOOKCHECKOUT,
+				R.ROOMCOUNT, 
+				B.BOOKSTATUS
+			FROM MEMBER M, ROOM R, BOOKING B
+			WHERE R.OWNID = #{ownid} 
+				AND R.ROOMNAME = B.ROOMNAME 
+				AND M.MEMID = B.MEMID 
+				AND B.BOOKSTATUS = 3
+				)
+		WHERE BOOKCHECKOUT = #{bookcheckout} 
+			OR BOOKCHECKOUT &gt; #{bookcheckout}
+	</select>
+
+	<!-- 체크아웃 한 룸 -->
+	<select id="getChekOut" resultType="Booking" parameterType="String">
+		SELECT 
+			* 
+		FROM (
+			SELECT 
+				B.BOOKNUM, 
+				M.MEMNAME, 
+				M.MEMTEL, 
+				B.ROOMNAME, 
+				B.BOOKCHECKIN, 
+				B.BOOKCHECKOUT, 
+				R.ROOMCOUNT, 
+				B.BOOKSTATUS
+			FROM MEMBER M, ROOM R, BOOKING B
+			WHERE R.OWNID = #{ownid} 
+				AND R.ROOMNAME = B.ROOMNAME 
+				AND M.MEMID = B.MEMID 
+				AND B.BOOKSTATUS = 4
+				)
+		WHERE BOOKCHECKOUT = #{bookcheckout} 
+			OR BOOKCHECKOUT &gt; #{bookcheckout}
+	</select>
+	
+	<!-- 오늘 체크아웃 업데이트 -->
+	<update id="updateTodayCheckOut" parameterType="String">
+		UPDATE BOOKING 
+		SET BOOKSTATUS = 4 
+		WHERE BUNAME = #{buname}
+			AND BOOKNUM = #{booknum} 
+			AND ( BOOKCHECKOUT &gt; #{bookcheckout}
+				OR BOOKCHECKOUT = #{bookcheckout}
+				)
+	</update>
+	
+	<!-- 일찍 체크아웃 한 방 찾기 -->
+	<select id="todayCheckOutCount" parameterType="String" resultType="int">
+		SELECT 
+			count(1) 
+		FROM RESERVED R, BOOKING B 
+		WHERE  B.ROOMNUM = R.ROOMNUM 
+			AND BOOKSTATUS = 4 
+			AND B.BOOKNUM = #{booknum}
+			AND REGDATE &gt;= #{bookcheckout}
+	</select>
+	
+	<!-- 일찍 체크아웃 한 방 reserved에서 지우기 -->
+	<delete id="deleteReserve" parameterType="String">
+		DELETE 
+		FROM (
+			SELECT
+				* 
+			FROM RESERVED R, BOOKING B 
+			WHERE B.ROOMNUM = R.ROOMNUM 
+				AND BOOKSTATUS = 4 
+				AND B.BOOKNUM = #{booknum} 
+				AND ( REGDATE = #{bookcheckout} 
+					OR REGDATE &gt; #{bookcheckout}
+					)
+			)
+	</delete>
+	
+	<!-- 호텔 상세보기 룸 출력  reservation에서-->
+	<select id="hotelGetRooms" resultType="Room" parameterType="String">
+		SELECT 
+			* 
+		FROM ROOM 
+		WHERE OWNID = #{ownid}
+	</select>
+	
+	<!-- 예약 중복 룸 리스트 roomMapper에서 -->
+	<select id="getOverLapRooms" resultType="Room" parameterType="String">
+		SELECT 
+			A.*, 
+			nvl(R.overlap,0) as overlap 
+		FROM ( 
+			SELECT *
+			FROM ROOM 
+			WHERE OWNID = #{ownid} ) A
+		LEFT OUTER JOIN (
+				SELECT
+					ROOMNUM,
+					COUNT(*) as overlap 
+				FROM RESERVED 
+				WHERE REGDATE BETWEEN #{bookcheckin} AND #{bookcheckout} 
+				GROUP BY ROOMNUM ) R
+		on a.roomnum =
+		r.roomnum
+	</select>
+	
+	
+	
+	<!-- 모든 객실 출력 -->
+	<!-- <select id="room_list" resultType="vo.RoomVO">
+		select * from room
+	</select> -->
+
+	<!-- 호텔 상세보기 룸 출력 getRooms -->
+	<!-- <select id="hotel_room" resultType="vo.RoomVO"
+		parameterType="String">
+		select * from room where ownid=#{ownid}
+	</select> -->
+
+	<!-- 체크인 안한 룸 getNotCheckin으로 변경 -->
+	<!-- <select id="room_notcheckin" resultType="vo.BookingVO"
+		parameterType="java.util.Map">
+		select * from (
+		select b.booknum, m.memname, m.memtel,
+		b.roomname, b.bookcheckin, b.bookcheckout,
+		r.roomcount, b.bookstatus
+		from member m, room r, booking b
+		where r.ownid = #{ownid} and
+		r.roomname = b.roomname and
+		m.memid =
+		b.memid and b.bookstatus = 1)
+		where bookcheckin = #{bookcheckin} or bookcheckin &lt; #{bookcheckin}
+	</select> -->
+
+	<!-- 체크인 한 룸 getCheckIn -->
+	<!-- <select id="room_checkinok" resultType="vo.BookingVO"
+		parameterType="java.util.Map">
+		select * from (
+		select b.booknum, m.memname, m.memtel,
+		b.roomname, b.bookcheckin, b.bookcheckout,
+		r.roomcount, b.bookstatus
+		from member m, room r, booking b
+		where r.ownid = #{ownid} and
+		r.roomname = b.roomname and
+		m.memid =
+		b.memid and b.bookstatus = 3)
+		where bookcheckin = #{bookcheckin}
+	</select> -->
+
+	<!-- 오늘 체크인 업데이트  updateTodayCheckIn-->
+	<!-- <update id="room_update_todaycheckin"
+		parameterType="java.util.Map">
+		update booking set bookstatus =3 where buname=#{buname}
+		and
+		booknum=#{booknum} and bookcheckin= #{bookcheckin}
+	</update> -->
+
+	<!-- 체크아웃 안한 룸 getNotChekOut -->
+	<!-- <select id="room_notcheckout" resultType="vo.BookingVO"
+		parameterType="java.util.Map">
+		select * from (
+		select b.booknum, m.memname, m.memtel,
+		b.roomname, b.bookcheckin, b.bookcheckout,
+		r.roomcount, b.bookstatus
+		from member m, room r, booking b
+		where r.ownid = #{ownid} and
+		r.roomname = b.roomname and
+		m.memid =
+		b.memid and b.bookstatus = 3)
+		where bookcheckout = #{bookcheckout} or bookcheckout &gt;
+		#{bookcheckout}
+	</select> -->
+
+	<!-- 체크아웃 한 룸  getChekOut-->
+	<!-- <select id="room_checkoutok" resultType="vo.BookingVO"
+		parameterType="java.util.Map">
+		select * from (
+		select b.booknum, m.memname, m.memtel,
+		b.roomname, b.bookcheckin, b.bookcheckout,
+		r.roomcount, b.bookstatus
+		from member m, room r, booking b
+		where r.ownid = #{ownid} and
+		r.roomname = b.roomname and
+		m.memid =
+		b.memid and b.bookstatus = 4)
+		where bookcheckout = #{bookcheckout} or bookcheckout &gt;
+		#{bookcheckout}
+	</select> -->
+
+	<!-- 오늘 체크아웃 업데이트  updateTodayCheckOut-->
+	<!-- <update id="room_update_todaycheckout"
+		parameterType="java.util.Map">
+		update booking set bookstatus =4 where buname=#{buname}
+		and
+		booknum=#{booknum} and (bookcheckout &gt; #{bookcheckout}or
+		bookcheckout =#{bookcheckout})
+	</update> -->
+
+	<!-- 일찍 체크아웃 한 방 찾기 todayCheckOutCount -->
+	<!-- <select id="room_update_todaychecout_count"
+		parameterType="java.util.Map" resultType="int">
+		select count(*) from reserved
+		r, booking b where
+		b.roomnum=r.roomnum and bookstatus=4 and
+		b.booknum=#{booknum}
+		and regdate
+		&gt;= #{bookcheckout}
+	</select> -->
+
+
+	<!-- 일찍 체크아웃 한 방 reserved에서 지우기  deleteReserve-->
+	<!-- <delete id="room_book_delete" parameterType="java.util.Map">
+		delete from (
+		select
+		* from reserved r, booking b where b.roomnum = r.roomnum and
+		bookstatus = 4 and b.booknum = #{booknum} and (regdate =
+		#{bookcheckout} or regdate &gt; #{bookcheckout}))
+	</delete> -->
+
+	<!-- 예약 내역 리스트 -->
+	<!-- <select id="reserve_list" resultType="vo.BookingVO"
+		parameterType="java.util.Map">
+		select * from (
+		select rank() over(order by
+		bookcheckout desc,bookstatus
+		desc) no , a.*
+		from(
+		select
+		m.memname, m.memtel, m.memid,b.roomname,
+		b.bookcheckin,
+		b.bookcheckout, r.roomcount, b.bookstatus
+		from member m,
+		room r, booking b
+		where r.ownid =
+		#{ownid} and r.roomname = b.roomname
+		and m.memid = b.memid
+		order by  bookcheckout asc,bookstatus desc)
+		a) where no
+		between #{start} and #{end}
+	</select> -->
+
+	<!-- 전체 예약 내역 수 [reservationMapper로 이동]--> 
+	<!-- <select id="reservation_count" resultType="int">
+		select COUNT(*) from
+		booking
+	</select> -->
+	
+	<!-- 전체 리뷰 조회-->
+	<!-- <select id="review_relist" resultType="vo.ReviewVO"
+		parameterType="java.util.Map">
+		select * from
+		(select rank() over(order by ref desc, step
+		asc) no, b.* from review b )
+		where  buname = #{buname}
+	</select>  -->
+	
+
+</mapper>

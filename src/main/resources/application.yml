@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@localhost:1521/orcl
+    username: c##scott
+    password: tiger 
+#  mvc:
+#    view:
+#      prefix: /WEB-INF/views/ 
+#      suffix: .jsp
+      
+mybatis: 
+  config-location: classpath:mybatis-config.xml
+  mapper-locations: classpath:com.academy.lodsing/**/*Mapper.xml
+  type-aliases-package: com.academy.lodsing
+
+
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    context-path: "/"
+
+
+
+
+      
+      

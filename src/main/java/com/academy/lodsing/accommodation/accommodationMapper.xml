@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.academy.lodsing.accommodation.AccommodationMapper">
+
+<!-- 지역별 모텔 리스트 -->
+	<select id="findAll" resultType="accommodation" parameterType="string">
+		select * from business where bucounty=#{bucounty} and bucate = '모텔'
+	
+	</select>
+	
+	<select id="findHotelAll" resultType="accommodation" parameterType="string">
+		select * from business where bucounty=#{bucounty} and bucate = '호텔'
+	
+	</select>
+	
+<!-- 	<sql id="findAllWhereClause">
+		AND W.${condition.st} = #{condition.sv}
+		<choose>
+			<when test="condition.st == 'TID'">
+		AND W.TID = #{condition.sv}	
+			</when>
+			<when test="condition.st == 'MDN'">
+		AND W.MDN = #{condition.sv}	
+			</when>
+		</choose>
+		<if test="condition.st == 'MDN' and condition.cretDt != null and condition.cretDt != ''">
+		AND W.CRET_DT BETWEEN #{condition.cretDt} || '0000' AND #{condition.cretDt} || '5959'
+		AND W.CRET_DT LIKE #{condition.cretDt} || '%'
+		</if>
+		<if test="condition.cretDt eq null or condition.cretDt eq ''">
+		AND ROWNUM &lt;= 40
+		</if>
+	</sql>
+
+	<select id="count" parameterType="map" resultType="long">
+		SELECT 
+			COUNT(*)  
+		FROM WORKINFO W
+		WHERE 1 = 1
+		<include refid="findAllWhereClause"/>
+		<if test="condition.cretDt eq null or condition.cretDt eq ''">
+		AND ROWNUM &lt;= 40
+		</if> 
+	</select>
+
+	<select id="findAll" parameterType="map" resultType="workInfo">
+		<include refid="eatcom.common.database.CommonMapper.pagingPrefix"/>
+		SELECT TID, MDN, AID, WRK_DIV_CD, RESLT_VAL, CRET_DT, ESIM_YN FROM
+		( SELECT  
+			W.TID,
+			W.MDN,
+			W.AID,
+			W.WRK_DIV_CD,
+			W.RESLT_VAL,
+			W.CRET_DT,
+			W.ESIM_YN
+		FROM WORKINFO W
+		WHERE 1 = 1
+		<include refid="findAllWhereClause"/>
+		ORDER BY W.CRET_DT DESC )
+		WHERE 1 = 1 
+		<if test="condition.cretDt eq null or condition.cretDt eq ''">
+			AND ROWNUM &lt;= 40
+		</if> 
+		<include refid="eatcom.common.database.CommonMapper.pagingSuffix"/>
+	</select>
+
+	<select id="findOne" parameterType="map" resultType="workInfo">
+		SELECT  
+			W.TID,
+			W.WRK_DIV_CD,
+			W.ICCID,
+			W.MDN,
+			W.AID,
+			W.IMSI,
+			W.RESLT_VAL,
+			W.CRET_DT,
+			W.ESIM_YN
+		FROM WORKINFO W
+		WHERE W.TID = #{tid}
+		AND W.WRK_DIV_CD = #{wrkDivCd}
+	</select>
+
+	<select id="findAllApiInfoHis" parameterType="string" resultType="apiInfoHis">
+		SELECT
+			A.IF_SYS_CD,
+			A.IF_SYS_RESLT_CD,
+			A.IF_SYS_IO_CD,
+			A.MSG_SBST,
+			A.CRET_DT
+		FROM APIINFOHIS A
+		WHERE A.TID = #{tid}
+		ORDER BY CRET_DT ASC
+	</select> -->
+
+</mapper>
+

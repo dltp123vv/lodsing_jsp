@@ -1,0 +1,49 @@
+.lee {
+	background-color: rgb(2, 100, 125);
+	color: white;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.list {
+	background-color: rgb(236, 231, 231);
+	color: rgb(0, 0, 0);
+	width: 180px;
+}
+
+.business_view {
+	width: 1024px !important;
+	margin: 5% auto !important;
+}
+
+.default_btn {
+	background-color: #02647d;
+	border: none;
+	font-size: 18px;
+	color: white;
+	font-weight: bold;
+	height: 56px;
+	width: 100%;
+}
+
+.nav-tabs .active {
+	color: #02647d !important;
+	font-weight: bold;
+}
+
+.badge {
+	background-color: #02647d;
+	color:white;
+}
+.bu_review_star {
+	font-size: 1.3em; /* �씠紐⑥� �겕湲� */
+	color: #02647d; /* 湲곗〈 �씠紐⑥� 而щ윭 �젣嫄� */
+	text-shadow: 0 0 0 #ffc107; /* �깉 �씠紐⑥� �깋�긽 遺��뿬 */
+}
+
+.table-hover > tbody > tr > td.warning:hover,
+.table-hover > tbody > tr > th.warning:hover,
+.table-hover > tbody > tr.warning:hover > td,
+.table-hover > tbody > tr:hover > .warning,
+.table-hover > tbody > tr.warning:hover > th {
+  background-color: #02647d;
+}
